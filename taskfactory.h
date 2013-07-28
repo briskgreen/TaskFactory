@@ -18,14 +18,14 @@ typedef struct node
 typedef unsigned int bool;
 
 char *task_error(int error_code);
-TASK_QUEUE *task_queue_init(void);
+TASK_QUEUE *task_queue_init(unsigned int max);
 int task_queue_add(TASK_QUEUE *head,void *data,unsigned int priority);
-int task_queue_out(TASK_QUEUE *head,void *data);
+TASK_QUEUE *task_queue_out(TASK_QUEUE *head,void **data);
 bool task_queue_is_empty(void);
 bool task_queue_is_full(void);
 unsigned int task_queue_length(void);
-void task_queue_set_max_task(int num);
+void task_queue_set_max_task(unsigned int max);
 unsigned int task_queue_get_max_task(void);
-void task_queue_destroy(TASK_QUEUE *head,TASK_QUEUE *tail);
+int task_queue_destroy(TASK_QUEUE *head);
 
 #endif

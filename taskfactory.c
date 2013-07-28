@@ -13,7 +13,7 @@ char *task_error(int error_code)
 		return "The Task Empty!\n";
 }
 
-TASK_QUEUE *task_queue_init(void)
+TASK_QUEUE *task_queue_init(unsigned int max)
 {
 	TASK_QUEUE *head;
 
@@ -22,7 +22,7 @@ TASK_QUEUE *task_queue_init(void)
 	head->priority=0;
 	head->next=NULL;
 	task_queue_len=0;
-	task_queue_max=0;
+	task_queue_max=max;
 
 	return head;
 }
@@ -42,7 +42,7 @@ int task_queue_add(TASK_QUEUE *head,void *data,unsigned int priority)
 			break;
 	}
 
-	temp=malloc(TASK_QUEUE);
+	temp=malloc(sizeof(TASK_QUEUE));
 	temp->data=data;
 	temp->priority=priority;
 
@@ -54,18 +54,19 @@ int task_queue_add(TASK_QUEUE *head,void *data,unsigned int priority)
 	++task_queue_len;
 }
 
-int task_queue_out(TASK_QUEUE *head,void *data)
+TASK_QUEUE *task_queue_out(TASK_QUEUE *head,void **data)
 {
 	TASK_QUEUE *temp;
 
 	if(task_queue_len <= 0)
-		return TASK_EMPTY;
+		return NULL;
 
 	temp=head->next;
-	data=temp->data;
-	head=head->next->next;
+	*data=temp->data;
+	head->next=head->next->next;
 	free(temp);
 	--task_queue_len;
+	return head;
 }
 
 bool task_queue_is_empty(void)
@@ -99,14 +100,20 @@ unsigned int task_queue_get_max_task(void)
 	return task_queue_max;
 }
 
-void task_queue_destroy(TASK_QUEUE *head)
+int task_queue_destroy(TASK_QUEUE *head)
 {
 	TASK_QUEUE *temp;
+
+	if(task_queue_len <= 0)
+		return TASK_EMPTY;
 
 	while(head != NULL)
 	{
 		temp=head;
-		head=head->next;
 		free(temp);
+		head=head->next;
 	}
+
+	task_queue_max=0;
+	task_queue_len=0;
 }
