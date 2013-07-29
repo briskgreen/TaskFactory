@@ -1,10 +1,5 @@
 #include "taskfactory.h"
 
-unsigned int task_queue_max;
-unsigned int task_queue_len;
-unsigned int task_max;
-unsigned int task_len;
-
 char *task_error(int error_code)
 {
 	if(error_code == TASK_FULL)
@@ -18,102 +13,102 @@ TASK_QUEUE *task_queue_init(unsigned int max)
 	TASK_QUEUE *head;
 
 	head=malloc(sizeof(TASK_QUEUE));
-	head->data=NULL;
-	head->priority=0;
+	head->max=max;
+	head->len=0;
 	head->next=NULL;
-	task_queue_len=0;
-	task_queue_max=max;
 
 	return head;
 }
 
 int task_queue_add(TASK_QUEUE *head,void *data,unsigned int priority)
 {
-	TASK_QUEUE *temp;
+	TASK_QUEUE_NODE *temp;
+	TASK_QUEUE_NODE *node;
 
-	if(task_queue_len >= task_queue_max)
+	if(head->len >= head->max)
 		return TASK_FULL;
 
-	while(head->next != NULL)
+	temp=head;
+	while(temp->next != NULL)
 	{
-		if(head->next->priority <= priority)
-			head=head->next;
+		if(temp->next->priority <= priority)
+			temp=temp->next;
 		else
 			break;
 	}
 
-	temp=malloc(sizeof(TASK_QUEUE));
-	temp->data=data;
-	temp->priority=priority;
+	node=malloc(sizeof(TASK_QUEUE_NODE));
+	node->data=data;
+	node->priority=priority;
 
-	if(head->next == NULL)
-		temp->next=NULL;
+	if(temp->next == NULL)
+		node->next=NULL;
 	else
-		temp->next=head->next;
-	head->next=temp;
-	++task_queue_len;
+		node->next=temp->next;
+	temp->next=node;
+	++head->len;
+	return 0;
 }
 
-TASK_QUEUE *task_queue_out(TASK_QUEUE *head,void **data)
+int task_queue_out(TASK_QUEUE *head,void **data)
 {
-	TASK_QUEUE *temp;
+	TASK_QUEUE_NODE *temp;
 
-	if(task_queue_len <= 0)
-		return NULL;
+	if(head->len <= 0)
+		return TASK_FULL;
 
 	temp=head->next;
 	*data=temp->data;
-	head->next=head->next->next;
+	head->next=temp->next;
 	free(temp);
-	--task_queue_len;
-	return head;
+	--head->len;
+	return 0;
 }
 
-bool task_queue_is_empty(void)
+bool task_queue_is_empty(TASK_QUEUE *head)
 {
-	if(task_queue_len <= 0)
+	if(head->len <= 0)
 		return TRUE;
 	else
 		return FALSE;
 }
 
-bool task_queue_is_full(void)
+bool task_queue_is_full(TASK_QUEUE *head)
 {
-	if(task_queue_len >= task_queue_max)
+	if(head->len >= head->max)
 		return TRUE;
 	else
 		return FALSE;
 }
 
-unsigned int task_queue_length(void)
+unsigned int task_queue_length(TASK_QUEUE *head)
 {
-	return task_queue_len;
+	return head->len;
 }
 
-void task_queue_set_max_task(unsigned int max)
+void task_queue_set_max_task(TASK_QUEUE *head,unsigned int max)
 {
-	task_queue_max=max;
+	head->max=max;
 }
 
-unsigned int task_queue_get_max_task(void)
+unsigned int task_queue_get_max_task(TASK_QUEUE *head)
 {
-	return task_queue_max;
+	return head->max;
 }
 
-int task_queue_destroy(TASK_QUEUE *head)
+void task_queue_destroy(TASK_QUEUE *head)
 {
-	TASK_QUEUE *temp;
+	TASK_QUEUE_NODE *temp;
+	TASK_QUEUE_NODE *node;
 
-	if(task_queue_len <= 0)
-		return TASK_EMPTY;
+	temp=head->next;
 
-	while(head != NULL)
+	while(temp != NULL)
 	{
-		temp=head;
-		free(temp);
-		head=head->next;
+		node=temp;
+		free(node);
+		temp=temp->next;
 	}
 
-	task_queue_max=0;
-	task_queue_len=0;
+	free(head);
 }
