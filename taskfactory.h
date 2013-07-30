@@ -15,13 +15,23 @@ typedef struct node
 	unsigned int priority;
 	struct node *next;
 }TASK_QUEUE_NODE;
+
 typedef struct 
 {
 	unsigned int max;
 	unsigned int len;
 	struct node *next;
 }TASK_QUEUE;
+
+typedef struct 
+{
+	unsigned int len;
+	unsigned int max;
+	TASK_QUEUE *head;
+}TASK_FACTORY;
+
 typedef unsigned int bool;
+typedef void (*task_callback)(void *data);
 
 char *task_error(int error_code);
 TASK_QUEUE *task_queue_init(unsigned int max);
@@ -33,5 +43,14 @@ unsigned int task_queue_length(TASK_QUEUE *head);
 void task_queue_set_max_task(TASK_QUEUE *head,unsigned int max);
 unsigned int task_queue_get_max_task(TASK_QUEUE *head);
 void task_queue_destroy(TASK_QUEUE *head);
+
+TASK_FACTORY *task_factory_init(unsigned int task_max,unsigned int queue_max);
+int task_factory_add(TASK_FACTORY *task,task_callback *task_func,void *data); 
+void task_factory_finished(TASK_FACTORY *task);
+void task_factory_set_max_task(TASK_FACTORY *task,unsigned int max);
+unsigned int task_factory_get_max_task(TASK_FACTORY *task);
+unsigned int task_factory_get_length(TASK_FACTORY *task);
+bool task_factory_is_full(TASK_FACTORY *task);
+void task_factory_destroy(TASK_FACTORY *task);
 
 #endif

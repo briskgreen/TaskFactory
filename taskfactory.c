@@ -112,3 +112,57 @@ void task_queue_destroy(TASK_QUEUE *head)
 
 	free(head);
 }
+
+TASK_FACTORY *task_factory_init(unsigned int task_max,
+		unsigned int queue_max)
+{
+	TASK_FACTORY *task;
+
+	task=malloc(sizeof(TASK_FACTORY));
+	task->max=task_max;
+	task->len=0;
+	task->head=task_queue_init(queue_max);
+
+	return task;
+}
+
+int task_factory_add(TASK_FACTORY *task,
+		task_callback *task_func,void *data)
+{}
+
+void task_factory_finished(TASK_FACTORY *task)
+{
+	if(task->len != 0)
+		--task->len;
+}
+
+void task_factory_set_max_task(TASK_FACTORY *task,unsigned int max)
+{
+	task->max=max;
+}
+
+unsigned int task_factory_get_max_task(TASK_FACTORY *task)
+{
+	return task->max;
+}
+
+unsigned int task_factory_get_length(TASK_FACTORY *task)
+{
+	return task->len;
+}
+
+bool task_factory_is_full(TASK_FACTORY *task)
+{
+	if(task->len >= task->max)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+void task_factory_destroy(TASK_FACTORY *task)
+{
+	task_queue_destroy(task->head);
+	task->max=0;
+	task->len=0;
+	free(task);
+}
