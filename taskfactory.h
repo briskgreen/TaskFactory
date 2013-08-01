@@ -27,6 +27,7 @@ typedef struct
 {
 	unsigned int len;
 	unsigned int max;
+	int shmid;
 	TASK_QUEUE *head;
 }TASK_FACTORY;
 

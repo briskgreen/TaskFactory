@@ -1,5 +1,8 @@
 #include "taskfactory.h"
 
+void break_pause(int signum){}
+void task_factory(TASK_FACTORY *task);
+
 char *task_error(int error_code)
 {
 	if(error_code == TASK_FULL)
@@ -117,12 +120,49 @@ TASK_FACTORY *task_factory_init(unsigned int task_max,
 		unsigned int queue_max)
 {
 	TASK_FACTORY *task;
+	pid_t pid;
 
 	task=malloc(sizeof(TASK_FACTORY));
 	task->max=task_max;
 	task->len=0;
 	task->head=task_queue_init(queue_max);
+	task->shmid=shmget(IPC_PRIVATE,sizeof(pid_t),0666|IPC_CREAT);
 
+	pid=fork();
+	if(pid == -1)
+		return NULL;
+	if(pid == 0)
+	{
+		pid_t pid;
+
+		pid=fork();
+
+		if(pid == 0)
+		{
+			pid_t pid;
+			char *addr;
+			struct sigaction act;
+
+			act.sa_flags=0;
+			act.sa_handler=break_pause;
+			sigaction(SIGUSR1,&act,NULL);
+			addr=shmat(task->shmid,0,0);
+			pid=setsid();
+			strncpy(addr,(char *)&pid,sizeof(pid_t));
+			shmdt(addr);
+
+			while(1)
+			{
+				pause();
+				task_factory(task);
+			}
+		}
+
+		if(pid > 0)
+			_exit(0);
+	}
+	
+	waitpid(pid,NULL,0);
 	return task;
 }
 
@@ -132,6 +172,13 @@ int task_factory_add(TASK_FACTORY *task,
 
 void task_factory_finished(TASK_FACTORY *task)
 {
+	char *addr;
+	pid_t pid;
+
+	addr=shmat(task->shmid,0,0);
+	strncpy((char *)&pid,addr,sizeof(pid_t));
+	kill(pid,SIGUSR1);
+	shmdt(addr);
 	if(task->len != 0)
 		--task->len;
 }
@@ -161,8 +208,15 @@ bool task_factory_is_full(TASK_FACTORY *task)
 
 void task_factory_destroy(TASK_FACTORY *task)
 {
+	char *addr;
+	pid_t pid;
+
 	task_queue_destroy(task->head);
 	task->max=0;
 	task->len=0;
+	addr=shmat(task->shmid,0,0);
+	strncpy((char *)&pid,addr,sizeof(pid_t));
+	killpg(pid,SIGKILL);
+	shmdt(addr);
 	free(task);
 }
