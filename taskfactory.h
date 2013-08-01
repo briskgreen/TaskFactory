@@ -3,17 +3,25 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/shm.h>
+#include <signal.h>
+#include <string.h>
 
 #define TRUE 1
 #define FALSE 0
 #define TASK_FULL -1
 #define TASK_EMPTY -2
 
+typedef void (*task_callback)(void *data);
+typedef unsigned char bool;
+
 typedef struct node
 {
 	void *data;
 	unsigned int priority;
 	struct node *next;
+	task_callback *func;
 }TASK_QUEUE_NODE;
 
 typedef struct 
@@ -30,9 +38,6 @@ typedef struct
 	int shmid;
 	TASK_QUEUE *head;
 }TASK_FACTORY;
-
-typedef unsigned int bool;
-typedef void (*task_callback)(void *data);
 
 char *task_error(int error_code);
 TASK_QUEUE *task_queue_init(unsigned int max);

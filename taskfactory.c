@@ -220,3 +220,6 @@ void task_factory_destroy(TASK_FACTORY *task)
 	shmdt(addr);
 	free(task);
 }
+
+void task_factory(TASK_FACTORY *task)
+{}
