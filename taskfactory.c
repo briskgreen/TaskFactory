@@ -23,7 +23,7 @@ TASK_QUEUE *task_queue_init(unsigned int max)
 	return head;
 }
 
-int task_queue_add(TASK_QUEUE *head,task_callback *task_func,
+int task_queue_add(TASK_QUEUE *head,task_callback task_func,
 		void *data,unsigned int priority)
 {
 	TASK_QUEUE_NODE *temp;
@@ -63,9 +63,9 @@ int task_queue_out(TASK_QUEUE *head,TASK_QUEUE_NODE *data)
 		return TASK_FULL;
 
 	temp=head->next;
-	data=temp;
+	memcpy(data,temp,sizeof(TASK_QUEUE_NODE));
 	head->next=temp->next;
-	//free(temp);
+	free(temp);
 	--head->len;
 	return 0;
 }
@@ -169,10 +169,10 @@ TASK_FACTORY *task_factory_init(unsigned int task_max,
 }
 
 int task_factory_add(TASK_FACTORY *task,
-		task_callback *task_func,void *data,
+		task_callback task_func,void *data,
 		unsigned int priority)
 {
-	pit_t pid;
+	pid_t pid;
 
 	if(task_factory_is_full(task))
 	{
@@ -193,7 +193,7 @@ int task_factory_add(TASK_FACTORY *task,
 		setpgid(getpid(),pid);
 		shmdt(addr);
 		
-		task_func(data);
+		task_func(data);	
 		_exit(0);
 	}
 }
