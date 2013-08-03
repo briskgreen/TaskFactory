@@ -23,7 +23,8 @@ TASK_QUEUE *task_queue_init(unsigned int max)
 	return head;
 }
 
-int task_queue_add(TASK_QUEUE *head,void *data,unsigned int priority)
+int task_queue_add(TASK_QUEUE *head,task_callback *task_func,
+		void *data,unsigned int priority)
 {
 	TASK_QUEUE_NODE *temp;
 	TASK_QUEUE_NODE *node;
@@ -43,6 +44,7 @@ int task_queue_add(TASK_QUEUE *head,void *data,unsigned int priority)
 	node=malloc(sizeof(TASK_QUEUE_NODE));
 	node->data=data;
 	node->priority=priority;
+	node->func=task_func;
 
 	if(temp->next == NULL)
 		node->next=NULL;
@@ -53,7 +55,7 @@ int task_queue_add(TASK_QUEUE *head,void *data,unsigned int priority)
 	return 0;
 }
 
-int task_queue_out(TASK_QUEUE *head,void **data)
+int task_queue_out(TASK_QUEUE *head,TASK_QUEUE_NODE *data)
 {
 	TASK_QUEUE_NODE *temp;
 
@@ -61,9 +63,9 @@ int task_queue_out(TASK_QUEUE *head,void **data)
 		return TASK_FULL;
 
 	temp=head->next;
-	*data=temp->data;
+	data=temp;
 	head->next=temp->next;
-	free(temp);
+	//free(temp);
 	--head->len;
 	return 0;
 }
@@ -167,8 +169,34 @@ TASK_FACTORY *task_factory_init(unsigned int task_max,
 }
 
 int task_factory_add(TASK_FACTORY *task,
-		task_callback *task_func,void *data)
-{}
+		task_callback *task_func,void *data,
+		unsigned int priority)
+{
+	pit_t pid;
+
+	if(task_factory_is_full(task))
+	{
+		task_queue_add(task->head,task_func,data,priority);
+		return TASK_ADD_QUEUE;
+	}
+
+	pid=fork();
+	if(pid == -1)
+		return TASK_FORK;
+	if(pid == 0)
+	{
+		pid_t pid;
+		char *addr;
+
+		addr=shmat(task->shmid,0,0);
+		strncpy((char *)&pid,addr,sizeof(pid_t));
+		setpgid(getpid(),pid);
+		shmdt(addr);
+		
+		task_func(data);
+		_exit(0);
+	}
+}
 
 void task_factory_finished(TASK_FACTORY *task)
 {
@@ -222,4 +250,9 @@ void task_factory_destroy(TASK_FACTORY *task)
 }
 
 void task_factory(TASK_FACTORY *task)
-{}
+{
+	TASK_QUEUE_NODE data;
+
+	task_queue_out(task->head,&data);
+	task_factory_add(task,data.func,data.data,data.priority);
+}

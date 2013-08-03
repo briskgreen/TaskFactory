@@ -41,8 +41,9 @@ typedef struct
 
 char *task_error(int error_code);
 TASK_QUEUE *task_queue_init(unsigned int max);
-int task_queue_add(TASK_QUEUE *head,void *data,unsigned int priority);
-int task_queue_out(TASK_QUEUE *head,void **data);
+int task_queue_add(TASK_QUEUE *head,task_callback *task_func,
+		void *data,unsigned int priority);
+int task_queue_out(TASK_QUEUE *head,TASK_QUEUE_NODE *data);
 bool task_queue_is_empty(TASK_QUEUE *head);
 bool task_queue_is_full(TASK_QUEUE *head);
 unsigned int task_queue_length(TASK_QUEUE *head);
@@ -51,7 +52,8 @@ unsigned int task_queue_get_max_task(TASK_QUEUE *head);
 void task_queue_destroy(TASK_QUEUE *head);
 
 TASK_FACTORY *task_factory_init(unsigned int task_max,unsigned int queue_max);
-int task_factory_add(TASK_FACTORY *task,task_callback *task_func,void *data); 
+int task_factory_add(TASK_FACTORY *task,task_callback *task_func,
+		void *data,unsigned int priority); 
 void task_factory_finished(TASK_FACTORY *task);
 void task_factory_set_max_task(TASK_FACTORY *task,unsigned int max);
 unsigned int task_factory_get_max_task(TASK_FACTORY *task);
