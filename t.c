@@ -24,7 +24,8 @@ void create_task(int shmid)
 
 			addr=shmat(shmid,0,0);
 			pid=setsid();
-			strncpy(addr,(char *)&pid,sizeof(pid_t));
+			//strncpy(addr,(char *)&pid,sizeof(pid_t));
+			memcpy(addr,&pid,sizeof(pid_t));
 			shmdt(addr);
 			printf("in child(3) %d %d\n",pid,getpid());
 			while(1);
@@ -48,7 +49,8 @@ void finalsh(int shmid,pid_t man)
 	char *addr;
 
 	addr=shmat(shmid,0,0);
-	strncpy((char *)&pid,addr,sizeof(pid_t));
+	//strncpy((char *)&pid,addr,sizeof(pid_t));
+	memcpy(&pid,addr,sizeof(pid_t));
 	printf("the task is %d\n",pid);
 	killpg(pid,SIGKILL);
 	shmdt(&pid);
@@ -66,6 +68,7 @@ int main(void)
 	sigaction(SIGUSR1,&act,NULL);
 	create_task(shmid);
 	printf("in main %d\n",getpid());
+	sleep(1);
 	finalsh(shmid,getpid());
 	pause();
 	printf("Exit . . .\n");

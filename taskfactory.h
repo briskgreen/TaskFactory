@@ -14,6 +14,7 @@
 #define TASK_EMPTY -2
 #define TASK_ADD_QUEUE -3
 #define TASK_FORK -4
+#define TASK_OK 0
 
 typedef void (*task_callback)(void *data);
 typedef unsigned char bool;

@@ -150,7 +150,7 @@ TASK_FACTORY *task_factory_init(unsigned int task_max,
 			sigaction(SIGUSR1,&act,NULL);
 			addr=shmat(task->shmid,0,0);
 			pid=setsid();
-			strncpy(addr,(char *)&pid,sizeof(pid_t));
+			memcpy(addr,&pid,sizeof(pid_t));
 			shmdt(addr);
 
 			while(1)
@@ -165,6 +165,7 @@ TASK_FACTORY *task_factory_init(unsigned int task_max,
 	}
 	
 	waitpid(pid,NULL,0);
+	sleep(1);
 	return task;
 }
 
@@ -189,13 +190,17 @@ int task_factory_add(TASK_FACTORY *task,
 		char *addr;
 
 		addr=shmat(task->shmid,0,0);
-		strncpy((char *)&pid,addr,sizeof(pid_t));
+		memcpy(&pid,addr,sizeof(pid_t));
 		setpgid(getpid(),pid);
 		shmdt(addr);
 		
-		task_func(data);	
+		task_func(data);
+		task_factory_finished(task);
 		_exit(0);
 	}
+
+	++task->len;
+	return TASK_OK;
 }
 
 void task_factory_finished(TASK_FACTORY *task)
@@ -204,7 +209,7 @@ void task_factory_finished(TASK_FACTORY *task)
 	pid_t pid;
 
 	addr=shmat(task->shmid,0,0);
-	strncpy((char *)&pid,addr,sizeof(pid_t));
+	memcpy(&pid,addr,sizeof(pid_t));
 	kill(pid,SIGUSR1);
 	shmdt(addr);
 	if(task->len != 0)
@@ -243,7 +248,7 @@ void task_factory_destroy(TASK_FACTORY *task)
 	task->max=0;
 	task->len=0;
 	addr=shmat(task->shmid,0,0);
-	strncpy((char *)&pid,addr,sizeof(pid_t));
+	memcpy(&pid,addr,sizeof(pid_t));
 	killpg(pid,SIGKILL);
 	shmdt(addr);
 	free(task);
