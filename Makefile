@@ -1,5 +1,5 @@
 task:task.o taskfactory.o
-	gcc -o task task.o taskfactory.o -g
+	gcc -o task task.o taskfactory.o -lpthread -g
 
 task.o:task.c taskfactory.h
 	gcc -c task.c -g

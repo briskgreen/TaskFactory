@@ -7,13 +7,14 @@
 #include <sys/shm.h>
 #include <signal.h>
 #include <string.h>
+#include <pthread.h>
 
 #define TRUE 1
 #define FALSE 0
 #define TASK_FULL -1
 #define TASK_EMPTY -2
 #define TASK_ADD_QUEUE -3
-#define TASK_FORK -4
+#define TASK_THREAD -4
 #define TASK_OK 0
 
 typedef void (*task_callback)(void *data);
@@ -40,6 +41,7 @@ typedef struct
 	unsigned int max;
 	int shmid;
 	TASK_QUEUE *head;
+	pthread_t thread;
 }TASK_FACTORY;
 
 char *task_error(int error_code);

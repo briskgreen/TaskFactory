@@ -18,6 +18,7 @@ void print(void *data)
 
 	d=(DATA *)data;
 	printf("%d %s\n",d->i,d->des);
+	//printf("%s\n",data);
 }
 
 int main(void)
@@ -29,7 +30,7 @@ int main(void)
 		"fdr","fdr","sfg","lkh","fet","dwr",NULL};
 	int i;
 
-	task=task_factory_init(2,10);
+	task=task_factory_init(2,100);
 	for(i=0;des[i];++i)
 	{
 		data.i=i;
