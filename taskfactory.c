@@ -67,7 +67,8 @@ int task_queue_add(TASK_QUEUE *head,task_callback task_func,
 		node->next=temp->next;
 	temp->next=node;
 	++head->len;
-	printf("in task_queue_add %d %s\n",((T *)node->data)->i,((T *)node->data)->des);
+	if(head->next->next != NULL)
+	//printf("in task_queue_add %d %s\n",((T *)head->next->next->data)->i,((T *)head->next->next->data)->des);
 	return 0;
 }
 
@@ -78,13 +79,17 @@ int task_queue_out(TASK_QUEUE *head,TASK_QUEUE_NODE *data)
 	if(head->len <= 0)
 		return TASK_EMPTY;
 
+	if(head->next->next != NULL)
+	//printf("in task_queue_out %d %s\n",((T *)head->next->next->data)->i,
+//			((T *)head->next->next->data)->des);
+
 	temp=head->next;
 	memcpy(data,temp,sizeof(TASK_QUEUE_NODE));
-	head->next=temp->next;
-	printf("next %d %s\n",((T *)temp->next->next->data)->i,((T *)temp->next->next->data)->des);
-	free(temp);
+	//head->next=temp->next;
+	head->next=head->next->next;
+	//printf("next %d %s\n",((T *)temp->next->next->data)->i,((T *)temp->next->next->data)->des);
+	//free(temp);
 	--head->len;
-	printf("in task_queue_out %d %s\n",((T *)data->data)->i,((T *)data->data)->des);
 	return 0;
 }
 
@@ -165,7 +170,7 @@ int task_factory_add(TASK_FACTORY *task,
 		unsigned int priority)
 {
 	pthread_t thread;
-	DATA d;
+	DATA *d;
 
 	if(task_factory_is_full(task))
 	{
@@ -176,12 +181,15 @@ int task_factory_add(TASK_FACTORY *task,
 	}
 
 	//pthread_mutex_lock(&task_factory_mutex);
-	d.task=task;
-	d.task_func=task_func;
-	d.data=data;
+	d=malloc(sizeof(DATA));
+	d->task=task;
+	d->task_func=task_func;
+	d->data=data;
+	//printf("in task_factory_add %d %s\n",
+	//		((T *)d->data)->i,((T *)d->data)->des);
 	//pthread_mutex_unlock(&task_factory_mutex);
 
-	if(pthread_create(&thread,NULL,(void *)task_add,&d) == -1)
+	if(pthread_create(&thread,NULL,(void *)task_add,d) == -1)
 		return TASK_THREAD;
 
 	++task->len;
@@ -253,8 +261,12 @@ void task_factory(TASK_FACTORY *task)
 void task_add(DATA *data)
 {
 	pthread_mutex_lock(&task_factory_mutex);
+	//printf("in task_add %d %s\n",
+	//		((T *)data->data)->i,
+	//		((T *)data->data)->des);
 	data->task_func(data->data);
 	task_factory_finished(data->task);
+	free(data);
 	pthread_mutex_unlock(&task_factory_mutex);
 	pthread_exit(NULL);
 }

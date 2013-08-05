@@ -11,7 +11,7 @@ int main(void)
 {
 	TASK_QUEUE *head;
 	TASK_QUEUE_NODE node;
-	DATA data;
+	DATA *data;
 	char *des[20]={"123","456","789",
 	"abc","bcd","dfgh","wdg","wer","oiu",
 	"fdr","fdr","sfg","lkh","fet","dwr",NULL};
@@ -20,11 +20,11 @@ int main(void)
 	head=task_queue_init(20);
 	for(i=0;des[i];++i)
 	{
-		//data=malloc(sizeof(DATA));
-		data.i=i;
-		data.des=des[i];
+		data=malloc(sizeof(DATA));
+		data->i=i;
+		data->des=des[i];
 
-		task_queue_add(head,NULL,&data,5);
+		task_queue_add(head,NULL,data,5);
 	}
 
 	printf("len=%d max=%d\n",task_queue_length(head),
@@ -32,9 +32,9 @@ int main(void)
 	for(i=0;i<10;++i)
 	{
 		task_queue_out(head,&node);
-		data=*((DATA *)(node.data));
-		printf("%d ",data.i);
-		printf("%s\n",data.des);
+		data=((DATA *)(node.data));
+		printf("%d ",data->i);
+		printf("%s\n",data->des);
 	}
 	printf("len=%d des=%d\n",task_queue_length(head),
 			task_queue_get_max_task(head));

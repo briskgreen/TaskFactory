@@ -24,7 +24,7 @@ void print(void *data)
 int main(void)
 {
 	TASK_FACTORY *task;
-	DATA data;
+	DATA *data;
 	char *des[20]={"123","456","789",
 		"abc","bcd","dfgh","wdg","wer","oiu",
 		"fdr","fdr","sfg","lkh","fet","dwr",NULL};
@@ -33,10 +33,11 @@ int main(void)
 	task=task_factory_init(2,100);
 	for(i=0;des[i];++i)
 	{
-		data.i=i;
-		data.des=des[i];
+		data=malloc(sizeof(DATA));
+		data->i=i;
+		data->des=des[i];
 
-		task_factory_add(task,print,&data,5);
+		task_factory_add(task,print,data,5);
 	}
 
 	while(1);
