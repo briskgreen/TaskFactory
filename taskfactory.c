@@ -6,24 +6,26 @@ typedef struct
 	task_callback task_func;
 	void *data;
 }DATA;
-typedef struct
-{
-	int i;
-	char *des;
-}T;
 
 pthread_mutex_t task_factory_mutex;
+pthread_cond_t task_factory_cond;
 
-void break_pause(int signum){}
 void task_factory(TASK_FACTORY *task);
 void task_add(DATA *data);
 
 char *task_error(int error_code)
 {
-	if(error_code == TASK_FULL)
-		return "The Task Full!\n";
-	if(error_code == TASK_EMPTY)
-		return "The Task Empty!\n";
+	switch(error_code)
+	{
+		case TASK_FULL:
+			return "The Task Full!\n";
+		case TASK_EMPTY:
+			return "The Task Empty!\n";
+		case TASK_THREAD:
+			return "Create Thread Error!\n";
+		default:
+			return "No Error\n";
+	}
 }
 
 TASK_QUEUE *task_queue_init(unsigned int max)
@@ -67,8 +69,6 @@ int task_queue_add(TASK_QUEUE *head,task_callback task_func,
 		node->next=temp->next;
 	temp->next=node;
 	++head->len;
-	if(head->next->next != NULL)
-	//printf("in task_queue_add %d %s\n",((T *)head->next->next->data)->i,((T *)head->next->next->data)->des);
 	return 0;
 }
 
@@ -80,14 +80,10 @@ int task_queue_out(TASK_QUEUE *head,TASK_QUEUE_NODE *data)
 		return TASK_EMPTY;
 
 	if(head->next->next != NULL)
-	//printf("in task_queue_out %d %s\n",((T *)head->next->next->data)->i,
-//			((T *)head->next->next->data)->des);
 
 	temp=head->next;
 	memcpy(data,temp,sizeof(TASK_QUEUE_NODE));
-	//head->next=temp->next;
-	head->next=head->next->next;
-	//printf("next %d %s\n",((T *)temp->next->next->data)->i,((T *)temp->next->next->data)->des);
+	head->next=temp->next;
 	//free(temp);
 	--head->len;
 	return 0;
@@ -145,17 +141,13 @@ TASK_FACTORY *task_factory_init(unsigned int task_max,
 		unsigned int queue_max)
 {
 	TASK_FACTORY *task;
-	struct sigaction act;
-
-	act.sa_flags=0;
-	act.sa_handler=break_pause;
-	sigaction(SIGUSR1,&act,NULL);
 
 	task=malloc(sizeof(TASK_FACTORY));
 	task->max=task_max;
 	task->len=0;
 	task->head=task_queue_init(queue_max);
 	pthread_mutex_init(&task_factory_mutex,NULL);
+	pthread_cond_init(&task_factory_cond,NULL);
 	if(pthread_create(&task->thread,NULL,(void *)task_factory,task) == -1) 
 	{
 		free(task);
@@ -174,20 +166,14 @@ int task_factory_add(TASK_FACTORY *task,
 
 	if(task_factory_is_full(task))
 	{
-		//pthread_mutex_lock(&task_factory_mutex);
 		task_queue_add(task->head,task_func,data,priority);
-		//pthread_mutex_unlock(&task_factory_mutex);
 		return TASK_ADD_QUEUE;
 	}
 
-	//pthread_mutex_lock(&task_factory_mutex);
 	d=malloc(sizeof(DATA));
 	d->task=task;
 	d->task_func=task_func;
 	d->data=data;
-	//printf("in task_factory_add %d %s\n",
-	//		((T *)d->data)->i,((T *)d->data)->des);
-	//pthread_mutex_unlock(&task_factory_mutex);
 
 	if(pthread_create(&thread,NULL,(void *)task_add,d) == -1)
 		return TASK_THREAD;
@@ -198,7 +184,7 @@ int task_factory_add(TASK_FACTORY *task,
 
 void task_factory_finished(TASK_FACTORY *task)
 {
-	pthread_kill(task->thread,SIGUSR1);
+	while(pthread_cond_signal(&task_factory_cond) != 0);
 	if(task->len != 0)
 		--task->len;
 }
@@ -233,40 +219,32 @@ void task_factory_destroy(TASK_FACTORY *task)
 	task->max=0;
 	task->len=0;
 	pthread_cancel(task->thread);
+	pthread_mutex_destroy(&task_factory_mutex);
+	pthread_cond_destroy(&task_factory_cond);
 	free(task);
 }
 
 void task_factory(TASK_FACTORY *task)
 {
 	TASK_QUEUE_NODE data;
-	/*struct sigaction act;
-
-	act.sa_flags=0;
-	act.sa_handler=break_pause;
-	sigaction(SIGUSR1,&act,NULL);*/
 
 	while(1)
 	{
-		pause();
+		while(pthread_cond_wait(&task_factory_cond,&task_factory_mutex) != 0);
 
 		if(task_queue_out(task->head,&data) == TASK_EMPTY)
 			continue;
 
-		//pthread_mutex_lock(&task_factory_mutex);
 		task_factory_add(task,data.func,data.data,data.priority);
-		//pthread_mutex_unlock(&task_factory_mutex);
 	}
 }
 
 void task_add(DATA *data)
 {
 	pthread_mutex_lock(&task_factory_mutex);
-	//printf("in task_add %d %s\n",
-	//		((T *)data->data)->i,
-	//		((T *)data->data)->des);
 	data->task_func(data->data);
+	pthread_mutex_unlock(&task_factory_mutex);
 	task_factory_finished(data->task);
 	free(data);
-	pthread_mutex_unlock(&task_factory_mutex);
 	pthread_exit(NULL);
 }

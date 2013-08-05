@@ -39,7 +39,6 @@ typedef struct
 {
 	unsigned int len;
 	unsigned int max;
-	int shmid;
 	TASK_QUEUE *head;
 	pthread_t thread;
 }TASK_FACTORY;
