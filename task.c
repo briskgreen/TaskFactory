@@ -16,10 +16,9 @@ void print(void *data)
 {
 	DATA *d;
 	static int i=0;
-	printf("in %d\n",++i);
 
 	d=(DATA *)data;
-	printf("%d %s\n",d->i,d->des);
+	printf("%d:%d %s\n",++i,d->i,d->des);
 	//printf("%s\n",data);
 }
 
@@ -30,18 +29,19 @@ int main(void)
 	char *des[]={"123","456","789",
 		"abc","bcd","dfgh","wdg","wer","oiu",
 		"fdr","fdr","sfg","lkh","fet","dwr","fuck",
-		"brisk","test","joke","what","the","comon",
-		NULL};
+		"brisk","test","joke","what","the","comon",NULL
+		};
 	int i;
 
-	task=task_factory_init(7,100);
+	task=task_factory_init(2,100);
 	for(i=0;des[i];++i)
 	{
 		data=malloc(sizeof(DATA));
 		data->i=i;
 		data->des=des[i];
 
-		task_factory_add(task,print,data,5);
+		if(task_factory_add(task,print,data,5) == TASK_THREAD)
+			printf("%s\n",task_error(TASK_THREAD));
 	}
 
 

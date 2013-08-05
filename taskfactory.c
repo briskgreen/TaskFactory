@@ -79,8 +79,6 @@ int task_queue_out(TASK_QUEUE *head,TASK_QUEUE_NODE *data)
 	if(head->len <= 0)
 		return TASK_EMPTY;
 
-	if(head->next->next != NULL)
-
 	temp=head->next;
 	memcpy(data,temp,sizeof(TASK_QUEUE_NODE));
 	head->next=temp->next;
