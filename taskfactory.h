@@ -64,5 +64,7 @@ unsigned int task_factory_get_max_task(TASK_FACTORY *task);
 unsigned int task_factory_get_length(TASK_FACTORY *task);
 bool task_factory_is_full(TASK_FACTORY *task);
 void task_factory_destroy(TASK_FACTORY *task);
+void task_factory_entry(void);
+void task_factory_leave(void);
 
 #endif

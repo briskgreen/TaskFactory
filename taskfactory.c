@@ -239,10 +239,20 @@ void task_factory(TASK_FACTORY *task)
 
 void task_add(DATA *data)
 {
-	pthread_mutex_lock(&task_factory_mutex);
+	//pthread_mutex_lock(&task_factory_mutex);
 	data->task_func(data->data);
-	pthread_mutex_unlock(&task_factory_mutex);
+	//pthread_mutex_unlock(&task_factory_mutex);
 	task_factory_finished(data->task);
 	free(data);
 	pthread_exit(NULL);
+}
+
+void task_factory_entry(void)
+{
+	pthread_mutex_lock(&task_factory_mutex);
+}
+
+void task_factory_leave(void)
+{
+	pthread_mutex_unlock(&task_factory_mutex);
 }
