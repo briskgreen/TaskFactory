@@ -23,6 +23,10 @@ char *task_error(int error_code)
 			return "The Task Empty!\n";
 		case TASK_THREAD:
 			return "Create Thread Error!\n";
+		case TASK_ADD_QUEUE:
+			return "The Queue Full!\n";
+		case TASK_OK:
+			return "Successed!\n"
 		default:
 			return "No Error\n";
 	}
@@ -239,9 +243,7 @@ void task_factory(TASK_FACTORY *task)
 
 void task_add(DATA *data)
 {
-	//pthread_mutex_lock(&task_factory_mutex);
 	data->task_func(data->data);
-	//pthread_mutex_unlock(&task_factory_mutex);
 	task_factory_finished(data->task);
 	free(data);
 	pthread_exit(NULL);
