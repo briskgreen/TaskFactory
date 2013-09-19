@@ -18,7 +18,7 @@
 #define TASK_OK 0
 
 typedef void (*task_callback)(void *data);
-typedef unsigned char bool;
+typedef unsigned char task_bool;
 
 typedef struct node
 {
@@ -48,8 +48,8 @@ TASK_QUEUE *task_queue_init(unsigned int max);
 int task_queue_add(TASK_QUEUE *head,task_callback task_func,
 		void *data,unsigned int priority);
 int task_queue_out(TASK_QUEUE *head,TASK_QUEUE_NODE *data);
-bool task_queue_is_empty(TASK_QUEUE *head);
-bool task_queue_is_full(TASK_QUEUE *head);
+task_bool task_queue_is_empty(TASK_QUEUE *head);
+task_bool task_queue_is_full(TASK_QUEUE *head);
 unsigned int task_queue_length(TASK_QUEUE *head);
 void task_queue_set_max_task(TASK_QUEUE *head,unsigned int max);
 unsigned int task_queue_get_max_task(TASK_QUEUE *head);
@@ -62,7 +62,7 @@ void task_factory_finished(TASK_FACTORY *task);
 void task_factory_set_max_task(TASK_FACTORY *task,unsigned int max);
 unsigned int task_factory_get_max_task(TASK_FACTORY *task);
 unsigned int task_factory_get_length(TASK_FACTORY *task);
-bool task_factory_is_full(TASK_FACTORY *task);
+task_bool task_factory_is_full(TASK_FACTORY *task);
 void task_factory_destroy(TASK_FACTORY *task);
 void task_factory_entry(void);
 void task_factory_leave(void);

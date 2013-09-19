@@ -91,7 +91,7 @@ int task_queue_out(TASK_QUEUE *head,TASK_QUEUE_NODE *data)
 	return 0;
 }
 
-bool task_queue_is_empty(TASK_QUEUE *head)
+task_bool task_queue_is_empty(TASK_QUEUE *head)
 {
 	if(head->len <= 0)
 		return TRUE;
@@ -99,7 +99,7 @@ bool task_queue_is_empty(TASK_QUEUE *head)
 		return FALSE;
 }
 
-bool task_queue_is_full(TASK_QUEUE *head)
+task_bool task_queue_is_full(TASK_QUEUE *head)
 {
 	if(head->len >= head->max)
 		return TRUE;
@@ -206,7 +206,7 @@ unsigned int task_factory_get_length(TASK_FACTORY *task)
 	return task->len;
 }
 
-bool task_factory_is_full(TASK_FACTORY *task)
+task_bool task_factory_is_full(TASK_FACTORY *task)
 {
 	if(task->len >= task->max)
 		return TRUE;
