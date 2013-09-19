@@ -26,7 +26,7 @@ char *task_error(int error_code)
 		case TASK_ADD_QUEUE:
 			return "The Queue Full!\n";
 		case TASK_OK:
-			return "Successed!\n"
+			return "Successed!\n";
 		default:
 			return "No Error\n";
 	}
