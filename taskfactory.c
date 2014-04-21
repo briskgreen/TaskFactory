@@ -177,8 +177,9 @@ int task_factory_add(TASK_FACTORY *task,
 	d->task_func=task_func;
 	d->data=data;
 
-	if(pthread_create(&thread,NULL,(void *)task_add,d) == -1)
+	if(pthread_create(&thread,NULL,(void *)task_add,d) != 0)
 		return TASK_THREAD;
+	pthread_detach(thread);
 
 	++task->len;
 	return TASK_OK;
