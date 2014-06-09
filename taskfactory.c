@@ -168,8 +168,10 @@ int task_factory_add(TASK_FACTORY *task,
 
 	if(task_factory_is_full(task))
 	{
-		task_queue_add(task->head,task_func,data,priority);
-		return TASK_ADD_QUEUE;
+		if(task_queue_add(task->head,task_func,data,priority) == TASK_FULL)
+			return TASK_ADD_QUEUE;
+		else
+			return TASK_OK;
 	}
 
 	d=malloc(sizeof(DATA));
