@@ -155,6 +155,7 @@ TASK_FACTORY *task_factory_init(unsigned int task_max,
 		free(task);
 		return NULL;
 	}
+	pthread_detach(task->thread);
 
 	return task;
 }
